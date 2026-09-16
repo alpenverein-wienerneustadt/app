@@ -860,8 +860,12 @@ form,.btn-container,.safety-warning,.dynamic-info-box,.video-box,.delete-btn,.lo
 
 <!-- Interaktive Tour: abgedunkelter Hintergrund mit Spotlight aufs jeweilige Element -->
 <div id="tutorial-overlay" style="display:none;position:fixed;inset:0;z-index:9000;">
- <div id="tutorial-spotlight" style="position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(15,23,42,0.72);transition:top 0.35s ease,left 0.35s ease,width 0.35s ease,height 0.35s ease;pointer-events:none;"></div>
- <div id="tutorial-card" style="position:fixed;z-index:9002;background:#fff;border-radius:16px;box-shadow:0 16px 36px rgba(0,0,0,0.3);padding:16px;max-width:300px;transition:top 0.35s ease,left 0.35s ease;">
+ <div id="tutorial-dim-top" style="position:fixed;background:rgba(15,23,42,0.72);pointer-events:none;transition:top 0.3s ease,left 0.3s ease,width 0.3s ease,height 0.3s ease;"></div>
+ <div id="tutorial-dim-bottom" style="position:fixed;background:rgba(15,23,42,0.72);pointer-events:none;transition:top 0.3s ease,left 0.3s ease,width 0.3s ease,height 0.3s ease;"></div>
+ <div id="tutorial-dim-left" style="position:fixed;background:rgba(15,23,42,0.72);pointer-events:none;transition:top 0.3s ease,left 0.3s ease,width 0.3s ease,height 0.3s ease;"></div>
+ <div id="tutorial-dim-right" style="position:fixed;background:rgba(15,23,42,0.72);pointer-events:none;transition:top 0.3s ease,left 0.3s ease,width 0.3s ease,height 0.3s ease;"></div>
+ <div id="tutorial-spotlight-ring" style="position:fixed;border:3px solid #fff;border-radius:12px;box-shadow:0 0 0 3px var(--primary),0 4px 14px rgba(0,0,0,0.35);pointer-events:none;transition:top 0.3s ease,left 0.3s ease,width 0.3s ease,height 0.3s ease;"></div>
+ <div id="tutorial-card" style="position:fixed;z-index:9002;background:#fff;border-radius:16px;box-shadow:0 16px 36px rgba(0,0,0,0.3);padding:16px;max-width:300px;transition:top 0.3s ease,left 0.3s ease;">
    <button type="button" onclick="closeTutorial()" title="Tour beenden" style="position:absolute;top:8px;right:8px;background:none;border:none;font-size:1.1rem;color:#94a3b8;cursor:pointer;padding:4px;line-height:1;">✕</button>
    <div style="display:flex;gap:12px;align-items:flex-start;padding-right:14px;">
      <img id="tutorial-avatar" src="" alt="" style="width:54px;height:54px;border-radius:50%;border:3px solid var(--primary);flex-shrink:0;background:#f8fafc;">
@@ -4101,7 +4105,8 @@ function generateTutorialDemo(){
 
 function showTutorialStep(){
  var step = TUTORIAL_STEPS[tutorialStepIndex];
- if(step.beforeShow === "generateDemo") generateTutorialDemo();
+ var extraDelay = 0;
+ if(step.beforeShow === "generateDemo"){ generateTutorialDemo(); extraDelay = 500; }
 
  document.getElementById('tutorial-avatar').src = TUTORIAL_AVATARS[step.avatar];
  document.getElementById('tutorial-text').textContent = step.text;
@@ -4117,44 +4122,99 @@ function showTutorialStep(){
  });
 
  var target = step.target ? document.querySelector(step.target) : null;
- var spotlight = document.getElementById('tutorial-spotlight');
- var card = document.getElementById('tutorial-card');
 
  if(target){
    target.scrollIntoView({behavior:'smooth', block:'center'});
-   setTimeout(function(){ positionTutorialAround(target, spotlight, card); }, 350);
+   setTimeout(function(){
+     waitForStablePosition(target, function(){ positionTutorialAround(target); });
+   }, extraDelay);
  } else {
-   spotlight.style.width = '0px';
-   spotlight.style.height = '0px';
-   spotlight.style.top = (window.innerHeight/2) + 'px';
-   spotlight.style.left = (window.innerWidth/2) + 'px';
-   spotlight.style.boxShadow = '0 0 0 9999px rgba(15,23,42,0.72)';
-   card.style.top = '50%';
-   card.style.left = '50%';
-   card.style.transform = 'translate(-50%,-50%)';
+   showTutorialNoTarget();
  }
 }
 
-function positionTutorialAround(target, spotlight, card){
+// Wartet, bis sich die Position des Zielelements zwischen zwei Prüfungen nicht mehr ändert (Scroll-Animation
+// abgeschlossen bzw. Layout nach Demo-Generierung fertig eingeschwungen), statt sich auf eine feste
+// Wartezeit zu verlassen - robuster auf echten Geräten mit unterschiedlicher Render-Geschwindigkeit.
+function waitForStablePosition(target, callback, attemptsLeft){
+ if(attemptsLeft === undefined) attemptsLeft = 25;
+ var rect1 = target.getBoundingClientRect();
+ requestAnimationFrame(function(){
+   requestAnimationFrame(function(){
+     var rect2 = target.getBoundingClientRect();
+     var stable = Math.abs(rect1.top - rect2.top) < 1 && Math.abs(rect1.left - rect2.left) < 1 && rect2.width > 0;
+     if(stable || attemptsLeft <= 0){
+       callback();
+     } else {
+       waitForStablePosition(target, callback, attemptsLeft - 1);
+     }
+   });
+ });
+}
+
+function positionTutorialAround(target){
+ var dimTop = document.getElementById('tutorial-dim-top');
+ var dimBottom = document.getElementById('tutorial-dim-bottom');
+ var dimLeft = document.getElementById('tutorial-dim-left');
+ var dimRight = document.getElementById('tutorial-dim-right');
+ var ring = document.getElementById('tutorial-spotlight-ring');
+ var card = document.getElementById('tutorial-card');
+
  var rect = target.getBoundingClientRect();
  var pad = 8;
- spotlight.style.top = (rect.top - pad) + 'px';
- spotlight.style.left = (rect.left - pad) + 'px';
- spotlight.style.width = (rect.width + pad*2) + 'px';
- spotlight.style.height = (rect.height + pad*2) + 'px';
+ var vw = window.innerWidth, vh = window.innerHeight;
+ var top = Math.max(0, rect.top - pad);
+ var left = Math.max(0, rect.left - pad);
+ var width = Math.min(rect.width + pad*2, vw);
+ var height = rect.height + pad*2;
+ var bottom = top + height;
+ var right = left + width;
+
+ dimTop.style.cssText += 'top:0px;left:0px;width:'+vw+'px;height:'+Math.max(0,top)+'px;';
+ dimBottom.style.cssText += 'top:'+bottom+'px;left:0px;width:'+vw+'px;height:'+Math.max(0,vh-bottom)+'px;';
+ dimLeft.style.cssText += 'top:'+top+'px;left:0px;width:'+Math.max(0,left)+'px;height:'+height+'px;';
+ dimRight.style.cssText += 'top:'+top+'px;left:'+right+'px;width:'+Math.max(0,vw-right)+'px;height:'+height+'px;';
+
+ ring.style.display = 'block';
+ ring.style.cssText += 'top:'+top+'px;left:'+left+'px;width:'+width+'px;height:'+height+'px;';
 
  card.style.transform = 'none';
- var cardWidth = 300;
- var spaceBelow = window.innerHeight - rect.bottom;
- var top, left;
- if(spaceBelow > 180 || spaceBelow > (window.innerHeight - rect.top - rect.height)){
-   top = Math.min(rect.bottom + 16, window.innerHeight - 220);
+ var cardWidth = Math.min(300, vw - 24);
+ var spaceBelow = vh - bottom;
+ var spaceAbove = top;
+ var cTop, cLeft;
+ if(spaceBelow >= 190 || spaceBelow >= spaceAbove){
+   cTop = Math.min(bottom + 14, vh - 210);
  } else {
-   top = Math.max(rect.top - 200, 12);
+   cTop = Math.max(top - 205, 10);
  }
- left = Math.min(Math.max(rect.left, 12), window.innerWidth - cardWidth - 12);
- card.style.top = top + 'px';
- card.style.left = left + 'px';
+ cTop = Math.max(10, Math.min(cTop, vh - 60));
+ cLeft = Math.min(Math.max(left, 12), vw - cardWidth - 12);
+ card.style.maxWidth = cardWidth + 'px';
+ card.style.top = cTop + 'px';
+ card.style.left = cLeft + 'px';
+}
+
+function showTutorialNoTarget(){
+ var dimTop = document.getElementById('tutorial-dim-top');
+ var dimBottom = document.getElementById('tutorial-dim-bottom');
+ var dimLeft = document.getElementById('tutorial-dim-left');
+ var dimRight = document.getElementById('tutorial-dim-right');
+ var ring = document.getElementById('tutorial-spotlight-ring');
+ var card = document.getElementById('tutorial-card');
+ var vw = window.innerWidth, vh = window.innerHeight;
+
+ dimTop.style.cssText += 'top:0px;left:0px;width:'+vw+'px;height:'+vh+'px;';
+ dimBottom.style.cssText += 'top:0px;left:0px;width:0px;height:0px;';
+ dimLeft.style.cssText += 'top:0px;left:0px;width:0px;height:0px;';
+ dimRight.style.cssText += 'top:0px;left:0px;width:0px;height:0px;';
+ ring.style.display = 'none';
+
+ var cardWidth = Math.min(300, vw - 24);
+ card.style.maxWidth = cardWidth + 'px';
+ card.style.top = '50%';
+ card.style.left = '50%';
+ card.style.transform = 'translate(-50%,-50%)';
 }
 
 var HELP_TOPICS = [
