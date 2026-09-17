@@ -116,11 +116,33 @@ button:disabled{opacity:0.6;cursor:not-allowed}
      <div class="stat-box"><span class="stat-value" id="stat-tours">–</span><span class="stat-label">Gespeicherte/geteilte Touren</span></div>
      <div class="stat-box"><span class="stat-value" id="stat-lists">–</span><span class="stat-label">Listen generiert (gesamt)</span></div>
    </div>
+   <div id="usage-stats-grid-time" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;">
+     <div class="stat-box"><span class="stat-value" id="stat-lists-today">–</span><span class="stat-label">Listen heute</span></div>
+     <div class="stat-box"><span class="stat-value" id="stat-lists-7d">–</span><span class="stat-label">Listen, letzte 7 Tage</span></div>
+     <div class="stat-box"><span class="stat-value" id="stat-lists-30d">–</span><span class="stat-label">Listen, letzte 30 Tage</span></div>
+   </div>
+ </div>
+
+ <div class="card" id="quota-card">
+   <h2 style="margin-top:0;font-size:1.1rem;">🔌 Firestore-Kontingent (heutige Lese-/Schreibzugriffe)</h2>
+   <p style="font-size:0.85rem;color:#64748b;margin-top:0;line-height:1.6;">
+     Diese Zahl kann diese Seite technisch nicht selbst anzeigen: Firestore bietet dafür keine Abfrage, die von einer Webseite aus aufgerufen werden kann - und ein selbstgebauter Zähler würde durch das Zählen selbst zusätzliche Schreibzugriffe verursachen (also genau das Gegenteil von Kontingent sparen).
+     Die verlässliche, offizielle Zahl findet ihr direkt in der Firebase-Console:
+   </p>
+   <a href="https://console.firebase.google.com/project/planungshilfe/firestore/usage" target="_blank" rel="noopener">
+     <button type="button" style="background:#1b4d3e;">Zur Firebase-Console: Nutzung heute ansehen →</button>
+   </a>
+   <p style="font-size:0.8rem;color:#94a3b8;margin-bottom:0;margin-top:10px;">Im kostenlosen Spark-Tarif stehen pro Tag ca. 50.000 Lesezugriffe, 20.000 Schreibzugriffe und 20.000 Löschungen zur Verfügung (Stand: Firebase-Dokumentation - kann sich ändern, daher lieber direkt dort nachsehen).</p>
  </div>
 
  <div class="card" id="breakdown-card">
-   <h2 style="margin-top:0;font-size:1.1rem;">🏔️ Was wird am häufigsten gewählt?</h2>
-   <p style="font-size:0.85rem;color:#64748b;margin-top:0;">Hilft dabei, genau die Touren-Kombinationen zu priorisieren, die am meisten genutzt werden.</p>
+   <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+     <div>
+       <h2 style="margin-top:0;font-size:1.1rem;">🏔️ Was wird am häufigsten gewählt?</h2>
+       <p style="font-size:0.85rem;color:#64748b;margin-top:0;">Hilft dabei, genau die Touren-Kombinationen zu priorisieren, die am meisten genutzt werden.</p>
+     </div>
+     <button type="button" id="breakdown-reset-btn" onclick="resetBreakdownStats()" style="background:#fff;color:#dc2626;border:1.5px solid #fecaca;padding:8px 14px;font-size:0.82rem;flex-shrink:0;">↺ Zurücksetzen</button>
+   </div>
    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:16px;">
      <div>
        <h3 style="font-size:0.95rem;color:var(--primary);margin-bottom:10px;">Kurslisten (Tourenführer)</h3>
@@ -159,7 +181,7 @@ button:disabled{opacity:0.6;cursor:not-allowed}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, orderBy, where, getCountFromServer, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy, where, getCountFromServer, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Gleiche Firebase-Projektkonfiguration wie die Hauptapp (index.html)
 const firebaseConfig = {
@@ -174,7 +196,7 @@ const firebaseConfig = {
 // Nur dieses Konto darf Feedback sehen. Der eigentliche Schutz passiert über
 // die Firestore Security Rules (allow read: if request.auth.uid == diese UID) -
 // diese Prüfung hier ist nur für eine schnelle, freundliche Fehlermeldung im UI.
-const ALLOWED_UID = "D4PuDU7xd0YqylaApAsVK0sOmQA2";
+const ALLOWED_UID = "dClY3B4oeoUs6mLZODsulkmlUOK2";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -287,11 +309,48 @@ async function loadUsageStats(){
    renderBreakdown('breakdown-features', usageData.features);
    renderBreakdown('breakdown-seasons', usageData.seasons, SEASON_LABELS);
    renderBreakdown('breakdown-durations', usageData.durations, DURATION_LABELS);
+
+   const dailyLists = usageData.dailyLists || {};
+   const today = new Date();
+   const dateKey = (d) => d.toISOString().slice(0, 10);
+   let sum7 = 0, sum30 = 0;
+   for(let i = 0; i < 30; i++){
+     const d = new Date(today);
+     d.setDate(d.getDate() - i);
+     const count = dailyLists[dateKey(d)] || 0;
+     if(i < 7) sum7 += count;
+     sum30 += count;
+   }
+   document.getElementById('stat-lists-today').textContent = dailyLists[dateKey(today)] || 0;
+   document.getElementById('stat-lists-7d').textContent = sum7;
+   document.getElementById('stat-lists-30d').textContent = sum30;
  } catch(e) {
    document.getElementById('stat-lists').textContent = "–";
+   document.getElementById('stat-lists-today').textContent = "–";
+   document.getElementById('stat-lists-7d').textContent = "–";
+   document.getElementById('stat-lists-30d').textContent = "–";
    console.warn("Nutzungszähler konnte nicht geladen werden:", e);
  }
 }
+
+window.resetBreakdownStats = async function(){
+ const confirmed = confirm("Die Statistik 'Was wird am häufigsten gewählt?' (Kurslisten, Disziplin, Jahreszeit, Dauer) wirklich zurücksetzen? Das kann nicht rückgängig gemacht werden. Die Gesamtzahl generierter Listen und die Tages-/Wochen-/Monats-Zahlen bleiben davon unberührt.");
+ if(!confirmed) return;
+ const btn = document.getElementById('breakdown-reset-btn');
+ btn.disabled = true;
+ btn.textContent = "Wird zurückgesetzt...";
+ try {
+   // updateDoc statt setDoc+merge: ersetzt diese vier Felder komplett durch leere Objekte,
+   // statt sie (wie merge:true bei verschachtelten Feldern) nur zu ergänzen.
+   await updateDoc(doc(db, "stats", "usage"), { courses: {}, features: {}, seasons: {}, durations: {} });
+   await loadUsageStats();
+ } catch(e) {
+   alert("Zurücksetzen fehlgeschlagen: " + e.message);
+ } finally {
+   btn.disabled = false;
+   btn.textContent = "↺ Zurücksetzen";
+ }
+};
 
 async function loadFeedback(){
  const loadingEl = document.getElementById('loading-state');

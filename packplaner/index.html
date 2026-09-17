@@ -1141,7 +1141,11 @@ function sanitizeStatKey(key){
 function trackListGenerated(details){
  try {
    details = details || {};
+   // Tagesgenauer Zähler im selben Dokument/Schreibvorgang - kostet keinen zusätzlichen Write,
+   // ermöglicht dem Admin-Bereich aber "heute/letzte 7/30 Tage"-Auswertungen.
+   const todayKey = new Date().toISOString().slice(0, 10);
    const updates = { listsGenerated: increment(1) };
+   updates["dailyLists." + todayKey] = increment(1);
    if(details.course){
      updates.courses = { [sanitizeStatKey(details.course)]: increment(1) };
    }
