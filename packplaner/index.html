@@ -840,6 +840,19 @@ form,.btn-container,.safety-warning,.dynamic-info-box,.video-box,.delete-btn,.lo
 </div>
 
 <!-- Modal Dialog: Sicherheitshinweis, nur einmal pro Gerät gezeigt (siehe localStorage 'oeav_safety_ack') -->
+<!-- Verpflichtendes Einstiegs-Popup: muss vor der ersten Nutzung bestätigt werden (Haftungsausschluss + Datenverarbeitung) -->
+<div id="entry-consent-modal" class="modal-overlay">
+<div class="modal-content" style="max-width:480px; text-align:left;">
+ <h3 style="text-align:center;">👋 Bevor es losgeht</h3>
+ <div style="font-size:0.9rem; line-height:1.6; color:#334155;">
+   <p>Der Ausrüstungsplaner schlägt dir passende Ausrüstung für deine Bergtour vor. <strong>Diese Vorschläge sind eine Orientierungshilfe – die endgültige Entscheidung über Ausrüstung und Tourdurchführung liegt immer bei dir selbst.</strong> Die App ersetzt keine alpine Ausbildung und keine eigene Einschätzung von Wetter und Verhältnissen vor Ort. Mehr dazu im <a href="#" onclick="openLiabilityModal(); return false;" style="color:#2563eb;">Haftungsausschluss</a>.</p>
+   <p>Für die Nutzung werden bestimmte Daten verarbeitet (z.B. lokal am Gerät, bei Anmeldung zusätzlich in der Cloud) – Details dazu in der <a href="#" onclick="openPrivacyModal(); return false;" style="color:#2563eb;">Datenschutzerklärung</a>.</p>
+   <p>Mit "OK, verstanden" bestätigst du, dass du diese Hinweise gelesen hast und mit der beschriebenen Datenverarbeitung einverstanden bist.</p>
+ </div>
+ <button type="button" class="modal-btn modal-btn-collab" style="margin-top:8px;" onclick="acceptEntryConsent()">OK, verstanden</button>
+</div>
+</div>
+
 <div id="safety-warning-modal" class="modal-overlay">
 <div class="modal-content" style="max-width:440px; text-align:left;">
  <div style="display:flex; align-items:center; gap:14px; justify-content:center; margin-bottom:6px;">
@@ -907,8 +920,9 @@ form,.btn-container,.safety-warning,.dynamic-info-box,.video-box,.delete-btn,.lo
 </div>
 
 <div style="text-align:center; font-size:0.85rem; color:#64748b; margin-top:40px; border-top:1px solid var(--border); padding-top:20px;">
-<div style="display:flex; justify-content:center; align-items:center; gap:18px; flex-wrap:wrap;">
+<div style="display:flex; justify-content:center; align-items:center; gap:16px; flex-wrap:wrap;">
 <a href="#" onclick="openPrivacyModal(); return false;" style="color:var(--primary); font-weight:600; text-decoration:none;">🔒 Datenschutz</a>
+<a href="#" onclick="openLiabilityModal(); return false;" style="color:var(--primary); font-weight:600; text-decoration:none;">⚖️ Haftungsausschluss</a>
 <a href="#" onclick="openFeedbackModal(); return false;" style="color:var(--primary); font-weight:600; text-decoration:none;">💬 Feedback geben</a>
 <a href="#" onclick="openImpressumModal(); return false;" style="color:var(--primary); font-weight:600; text-decoration:none;">ℹ️ Impressum</a>
 </div>
@@ -918,16 +932,19 @@ form,.btn-container,.safety-warning,.dynamic-info-box,.video-box,.delete-btn,.lo
 <!-- Modal Dialog: Datenschutz -->
 <div id="privacy-modal" class="modal-overlay">
 <div class="modal-content" style="max-width:600px; text-align:left;">
- <h3 style="text-align:center;">🔒 Datenschutzerklärung – Ergänzung</h3>
+ <h3 style="text-align:center;">🔒 Datenschutzerklärung</h3>
  <p style="font-size:0.82rem;color:#94a3b8;text-align:center;margin-top:-8px;">Ausrüstungsplaner der Sektion Wiener Neustadt</p>
  <div style="max-height:58vh; overflow-y:auto; font-size:0.9rem; line-height:1.6; color:#334155;">
-   <p>Diese Erklärung ergänzt die allgemeine Datenschutzerklärung der Sektion Wiener Neustadt um die Verarbeitungen, die speziell durch die Nutzung dieses Ausrüstungsplaners entstehen. Für alle nicht gesondert geregelten Punkte (Verantwortlicher, allgemeine Kontaktdaten, Beschwerderecht) gilt die Datenschutzerklärung der Hauptseite.</p>
+   <p>Diese Erklärung informiert darüber, welche Daten bei der Nutzung des Ausrüstungsplaners verarbeitet werden, zu welchem Zweck und wie lange.</p>
+
+   <h4 style="color:var(--primary);margin:18px 0 6px;">Verantwortlicher</h4>
+   <p>Verantwortlich im Sinne der DSGVO ist die Sektion Wiener Neustadt des Österreichischen Alpenvereins, Hauptplatz 1-3, 2700 Wiener Neustadt, E-Mail: <a href="mailto:avwn-mitglieder@gmx.at" style="color:#2563eb;">avwn-mitglieder@gmx.at</a> (siehe auch Impressum).</p>
 
    <h4 style="color:var(--primary);margin:18px 0 6px;">1. Nutzung ohne Anmeldung</h4>
    <p>Der Ausrüstungsplaner kann vollständig ohne Registrierung genutzt werden. Folgende Angaben verbleiben dabei ausschließlich auf dem verwendeten Gerät (kein Server-Kontakt): angehakte/eingepackte Gegenstände, lokal ausgeblendete Gegenstände, Bestätigung des Sicherheitshinweises, Hinweis ob die Kurzanleitung bereits gesehen wurde. Diese Daten lassen sich jederzeit über die Browser-Einstellungen oder die entsprechenden Funktionen in der App löschen.</p>
 
    <h4 style="color:var(--primary);margin:18px 0 6px;">2. Registrierung (optionales Konto)</h4>
-   <p>Wer Touren dauerhaft speichern, geräteübergreifend abrufen oder teilen möchte, kann optional ein Konto anlegen. Dabei werden E-Mail-Adresse, Passwort (verschlüsselt über Google Firebase Authentication), eine technische Nutzer-ID, der Zeitpunkt der Kontoerstellung, ein etwaiger Tourenführer-Status sowie optional selbst gespeicherte eigene Ausrüstungsgegenstände verarbeitet.</p>
+   <p>Wer Touren dauerhaft speichern, geräteübergreifend abrufen oder teilen möchte, kann optional ein Konto anlegen. Dabei werden E-Mail-Adresse, Passwort (verschlüsselt über Google Firebase Authentication), eine technische Nutzer-ID, der Zeitpunkt der Kontoerstellung, ein etwaiger Tourenführer-Status, die Bestätigung des Einstiegs-Hinweises (Haftungsausschluss/Datenverarbeitung) sowie optional selbst gespeicherte eigene Ausrüstungsgegenstände verarbeitet.</p>
 
    <h4 style="color:var(--primary);margin:18px 0 6px;">3. Gespeicherte und geteilte Touren</h4>
    <p>Bei registrierten Nutzer:innen werden auf Wunsch Tourname, Ausrüstungsliste, optional eingegebene Namen der Teilnehmer:innen (Namensangabe ist ausdrücklich freiwillig), Zuordnung zu Rucksäcken sowie der Ankreuzstatus beim gemeinsamen Packen gespeichert. Wird eine Liste über einen Teilen-Link weitergegeben, ist deren Inhalt für jede Person einsehbar, die über diesen Link verfügt.</p>
@@ -944,12 +961,26 @@ form,.btn-container,.safety-warning,.dynamic-info-box,.video-box,.delete-btn,.lo
    Eine Datenübermittlung in die USA ist dabei nicht auszuschließen; beide Anbieter verpflichten sich vertraglich zu einem angemessenen Datenschutzniveau.</p>
 
    <h4 style="color:var(--primary);margin:18px 0 6px;">7. Speicherdauer und Löschung</h4>
-   <p>Lokale Daten bleiben nur auf dem Gerät. Konto und gespeicherte Touren bestehen bis zur eigenständigen Löschung – einzelne Touren über "Löschen", über "Account löschen" werden Konto, alle Touren und das Nutzerprofil unwiderruflich entfernt. Feedback wird bis zur Bearbeitung gespeichert und kann auf Anfrage gelöscht werden.</p>
+   <p>Lokale Daten bleiben nur auf dem Gerät. Konto und gespeicherte Touren bestehen bis zur eigenständigen Löschung – einzelne Touren über "Löschen", über "Account löschen" werden Konto, alle Touren und das Nutzerprofil unwiderruflich entfernt. Dabei wird auch eine ggf. im Feedback angegebene E-Mail-Adresse automatisch entfernt; die Feedback-Nachricht selbst bleibt anonymisiert zur Auswertung erhalten und kann auf Anfrage vollständig gelöscht werden.</p>
 
    <h4 style="color:var(--primary);margin:18px 0 6px;">8. Rechte der Betroffenen</h4>
    <p>Es besteht das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit sowie Widerspruch (Art. 15–21 DSGVO), außerdem das Recht auf Beschwerde bei der österreichischen Datenschutzbehörde (dsb.gv.at). Anfragen dazu richten Sie bitte an die im Impressum genannte Kontaktadresse.</p>
  </div>
  <button type="button" class="modal-btn modal-btn-cancel" style="margin-top:16px;" onclick="closePrivacyModal()">Schließen</button>
+</div>
+</div>
+
+<!-- Modal Dialog: Haftungsausschluss -->
+<div id="liability-modal" class="modal-overlay">
+<div class="modal-content" style="max-width:560px; text-align:left;">
+ <h3 style="text-align:center;">⚖️ Haftungsausschluss</h3>
+ <div style="max-height:58vh; overflow-y:auto; font-size:0.9rem; line-height:1.65; color:#334155;">
+   <p>Der Ausrüstungsplaner unterstützt dich bei der Vorbereitung deiner Bergtour und schlägt auf Basis deiner Angaben (Jahreszeit, Disziplin, Gelände, Teilnehmer:innen usw.) eine passende Ausrüstung vor.</p>
+   <p><strong>Diese Vorschläge sind eine Orientierungshilfe und ersetzen keine eigene Einschätzung.</strong> Die endgültige Entscheidung über Ausrüstung, Route und Durchführung der Tour - sowie die Verantwortung dafür - liegt immer bei jeder Teilnehmerin und jedem Teilnehmer selbst. Insbesondere ersetzt die App keine alpine Ausbildung, keine aktuelle Wetter- und Verhältnisabklärung vor Ort und keine persönliche Risikoeinschätzung.</p>
+   <p>Die Sektion Wiener Neustadt und der Österreichische Alpenverein übernehmen, soweit gesetzlich zulässig, keine Haftung für Schäden, die aus der Nutzung der vorgeschlagenen Ausrüstungslisten oder der App selbst entstehen. Trotz sorgfältiger inhaltlicher Ausarbeitung wird keine Gewähr für Richtigkeit, Vollständigkeit und Aktualität der Inhalte übernommen.</p>
+   <p>Bergsport ist mit Risiken verbunden. Informiere dich vor jeder Tour eigenständig und sorgfältig über Wetter, Verhältnisse und die Anforderungen der geplanten Unternehmung.</p>
+ </div>
+ <button type="button" class="modal-btn modal-btn-cancel" style="margin-top:16px;" onclick="closeLiabilityModal()">Schließen</button>
 </div>
 </div>
 
@@ -1045,7 +1076,7 @@ form,.btn-container,.safety-warning,.dynamic-info-box,.video-box,.delete-btn,.lo
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, deleteUser, onAuthStateChanged, EmailAuthProvider, reauthenticateWithCredential, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, getDocFromServer, deleteDoc, collection, getDocs, query, where, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, updateDoc, getDoc, getDocFromServer, deleteDoc, collection, getDocs, query, where, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
  apiKey: "AIzaSyDI_oDGXnI1qYu6e3UxbVYMUE6g2tuvNGI",
@@ -1265,6 +1296,14 @@ onAuthStateChanged(auth, async (user) => {
      }
      userGearLibrary = (userDoc.exists() && Array.isArray(userDoc.data().gearLibrary)) ? userDoc.data().gearLibrary : [];
      safetyWarningAcknowledged = !!(userDoc.exists() && userDoc.data().safetyWarningAcknowledged);
+
+     // Anmelden/Registrieren gilt als Bestätigung des Einstiegs-Hinweises (Haftungsausschluss +
+     // Datenverarbeitung) - taucht für diesen Account daher auf keinem Gerät mehr erneut auf.
+     document.getElementById('entry-consent-modal').style.display = 'none';
+     try { localStorage.setItem('oeav_entry_consent_accepted', '1'); } catch(e) {}
+     if(!(userDoc.exists() && userDoc.data().entryConsentAccepted)){
+       setDoc(doc(db, "users", user.uid), { entryConsentAccepted: true }, { merge: true }).catch(() => {});
+     }
    } catch(e) {
      console.error("Fehler beim Laden des Benutzerprofils:", e);
      if (!userIsTourLeader) {
@@ -1521,6 +1560,20 @@ window.confirmDeleteAccount = async function() {
    });
    await Promise.all(deletePromises);
 
+   // 2b. E-Mail-Adresse aus eigenem, evtl. abgegebenem Feedback entfernen (Nachricht selbst bleibt
+   // für die Auswertung erhalten, nur der Personenbezug wird entfernt).
+   try {
+     const feedbackQ = query(collection(db, "feedback"), where("userId", "==", user.uid));
+     const feedbackSnap = await getDocs(feedbackQ);
+     const feedbackUpdates = [];
+     feedbackSnap.forEach((docSnap) => {
+       feedbackUpdates.push(updateDoc(doc(db, "feedback", docSnap.id), { email: null, userEmail: null }));
+     });
+     await Promise.all(feedbackUpdates);
+   } catch(e) {
+     console.error("Feedback-E-Mail konnte nicht entfernt werden:", e);
+   }
+
    // 3. Benutzerprofil in Firestore löschen
    await deleteDoc(doc(db, "users", user.uid));
 
@@ -1723,6 +1776,7 @@ window.closeSafetyWarningModal = async function(){
 };
 
 window.addEventListener('DOMContentLoaded', async () => {
+ checkEntryConsent();
  const urlParams = new URLSearchParams(window.location.search);
  const sharedTour = urlParams.get('tour');
  const viewTour = urlParams.get('view');
@@ -2994,6 +3048,26 @@ window.deleteGearLibraryItem = function(id){
 
 // Aktuellen Listeneintrag als neue Variante in die eigene Ausrüstung übernehmen (Kategorie wird automatisch übernommen)
 // --- Feedback ---
+
+window.openLiabilityModal = function(){
+ document.getElementById('liability-modal').style.display = 'flex';
+};
+window.closeLiabilityModal = function(){
+ document.getElementById('liability-modal').style.display = 'none';
+};
+
+window.acceptEntryConsent = function(){
+ document.getElementById('entry-consent-modal').style.display = 'none';
+ try { localStorage.setItem('oeav_entry_consent_accepted', '1'); } catch(e) {}
+};
+
+function checkEntryConsent(){
+ let accepted = false;
+ try { accepted = localStorage.getItem('oeav_entry_consent_accepted') === '1'; } catch(e) {}
+ if(!accepted){
+   document.getElementById('entry-consent-modal').style.display = 'flex';
+ }
+}
 
 window.openPrivacyModal = function(){
  document.getElementById('privacy-modal').style.display = 'flex';
@@ -4478,6 +4552,7 @@ var HELP_TOPICS = [
  {group:"Eigene Ausrüstung", title:"Aufteilen (✂️)", text:"Bei Gegenständen mit mehreren Stück (z.B. 10× Expressschlingen, 2× Biwaksack) kannst du festlegen, wie viele davon in welchen Rucksack kommen - z.B. 4 Express zu Anna, 6 zu Tom. Der Punkt wird dann automatisch in mehrere Listeneinträge aufgeteilt. Erscheint nur bei Gegenständen mit Stückzahl größer 1 und wenn mehrere Rucksäcke vorhanden sind."},
  {group:"Eigene Ausrüstung", title:"Als eigene Ausrüstung speichern (💾)", text:"Nur mit Anmeldung nutzbar (ohne Konto öffnet sich automatisch die Anmeldung). Übernimmt einen Listenpunkt direkt in deine Ausrüstungs-Bibliothek, ohne extra ins Verwaltungsmenü wechseln zu müssen."},
  {group:"Speichern & Teilen", title:"Tour speichern & Cloud-Konto", text:"Mit einem kostenlosen Konto kannst du Touren dauerhaft speichern, später wieder laden und deine eigene Ausrüstung verwalten."},
+ {group:"Speichern & Teilen", title:"Account löschen", text:"Im Account-Bereich unter 'Account löschen' werden dein Konto, alle gespeicherten Touren und dein Nutzerprofil unwiderruflich entfernt. Hast du dabei einmal Feedback abgegeben und eine E-Mail-Adresse angegeben, wird diese ebenfalls automatisch aus deinem Feedback entfernt - die Nachricht selbst bleibt anonymisiert zur Auswertung erhalten."},
  {group:"Speichern & Teilen", title:"Liste teilen", text:"Zwei Link-Arten: 'Gemeinsam bearbeiten' erlaubt anderen, die Liste mitzubearbeiten. 'Nur Ansicht' zeigt eine schreibgeschützte Version, bei der aber trotzdem Häkchen gesetzt werden können. Bei mehreren Personen bzw. eingeteilten Seilschaften erscheinen zusätzlich eigene Buttons: 'Nur für [Name]' teilt einen reinen Ansichts-Link, der nur zeigt, was diese Person laut Trageort-Zuordnung wirklich dabei hat (inkl. Körper-Gegenstände). 'Seilschaft [Nr.]' teilt einen vollwertigen Bearbeiten-Link, gefiltert auf nur diese Seilschaft - alle darin sehen nur ihre eigene Team-Ausrüstung, können sie untereinander verschieben (fremde Rucksäcke werden dabei nicht angeboten) und gemeinsam abhaken."},
  {group:"Speichern & Teilen", title:"Gemeinsam packen", text:"Nur beim 'Gemeinsam bearbeiten'-Link verfügbar: Aktivierst du diese Funktion, werden Häkchen live zwischen allen Geräten synchronisiert, die die Tour geöffnet haben - ideal für Familien, die gemeinsam packen."},
  {group:"Speichern & Teilen", title:"Drucken / PDF", text:"Erstellt eine druckfreundliche, vollständige Version der Liste (Filter wie Suche oder 'Was fehlt noch?' werden dabei ignoriert, damit immer die komplette Liste gedruckt wird)."},

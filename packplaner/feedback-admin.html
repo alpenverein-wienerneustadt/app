@@ -181,7 +181,7 @@ button:disabled{opacity:0.6;cursor:not-allowed}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, orderBy, where, getCountFromServer, getDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy, where, getCountFromServer, getDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Gleiche Firebase-Projektkonfiguration wie die Hauptapp (index.html)
 const firebaseConfig = {
@@ -440,12 +440,26 @@ window.renderList = function(){
    return `<div class="feedback-item cat-${slug}">
      <div class="feedback-header">
        <span class="feedback-badge badge-${slug}">${icon} ${escapeHtml(f.category || 'Sonstiges')}</span>
-       <span class="feedback-date">${formatDate(f.createdAt)}</span>
+       <div style="display:flex;align-items:center;gap:10px;">
+         <span class="feedback-date">${formatDate(f.createdAt)}</span>
+         <button type="button" onclick="deleteFeedback('${f.id}')" title="Diesen Feedback-Eintrag löschen" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.95rem;padding:2px 4px;">🗑️</button>
+       </div>
      </div>
      <div class="feedback-message">${escapeHtml(f.message)}</div>
      <div class="feedback-meta">${metaParts.join('')}</div>
    </div>`;
  }).join('');
+};
+
+window.deleteFeedback = async function(id){
+ if(!confirm("Diesen Feedback-Eintrag unwiderruflich löschen?")) return;
+ try {
+   await deleteDoc(doc(db, "feedback", id));
+   allFeedback = allFeedback.filter((f) => f.id !== id);
+   renderList();
+ } catch(e) {
+   alert("Löschen fehlgeschlagen: " + e.message);
+ }
 };
 
 onAuthStateChanged(auth, async (user) => {
