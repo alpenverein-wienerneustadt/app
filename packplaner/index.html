@@ -2063,7 +2063,7 @@ window.runPlanner = async function() {
      clothing.push(createItem("Wechselhose"+suf,350,backpackLoc));
    }
    if(duration==='hut'){
-     clothing.push(createItem("Wechselwäsche & Ersatz-Socken"+suf,250,backpackLoc),createItem("Hüttenschuhe / leichte Pantoffeln"+suf,200,backpackLoc),createItem("Kulturbeutel (Zahnbürste, Zahnpaste, Seife)"+suf,300,backpackLoc));
+     clothing.push(createItem("Hüttenschlafsack (auf AV-Hütten Pflicht)"+suf,230,backpackLoc),createItem("Wechselwäsche & Ersatz-Socken"+suf,250,backpackLoc),createItem("Hüttenschuhe / leichte Pantoffeln"+suf,200,backpackLoc),createItem("Kulturbeutel (Zahnbürste, Zahnpaste, Seife)"+suf,300,backpackLoc));
    } else {
      clothing.push(createItem("Wechsel-Funktionsshirt"+suf,150,backpackLoc));
      if(weather==='rain'||isWinterGear||tRiver){
@@ -2229,6 +2229,11 @@ window.runPlanner = async function() {
      }
    } else if(tClimbing){
      sharedTechnical.push(...buildClimbingTeamGear(adultCount, isTourLeaderList));
+   } else if(tGlacier){
+     // Gleicher Fallback wie beim Klettern: Gruppe ist zu klein für eine Seilschafts-Aufteilung
+     // (< 4 Personen gesamt) oder es wurde noch keine Aufteilung gewählt - Seil & Expressschlingen
+     // trotzdem als gemeinsame Ausrüstung für die gesamte (einzige) Seilschaft erzeugen.
+     sharedTechnical.push(...buildGlacierTeamGear(adultCount));
    }
  }
 
@@ -2301,7 +2306,7 @@ window.runPlanner = async function() {
        kidBackpackClothing.push(createItem("Kinder-Gamaschen"+ksuf,100,kidLoc));
      }
      if(duration==='hut'){
-       kidBackpackClothing.push(createItem("Wechselwäsche"+ksuf,200,kidLoc));
+       kidBackpackClothing.push(createItem("Hüttenschlafsack, kindgerechte Größe (auf AV-Hütten Pflicht)"+ksuf,180,kidLoc),createItem("Wechselwäsche"+ksuf,200,kidLoc));
      }
 
      // Genormte/zertifizierte Kinderausrüstung für dieselben technischen Anforderungen wie bei Erwachsenen
