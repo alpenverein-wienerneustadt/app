@@ -442,7 +442,7 @@ window.renderList = function(){
        <span class="feedback-badge badge-${slug}">${icon} ${escapeHtml(f.category || 'Sonstiges')}</span>
        <div style="display:flex;align-items:center;gap:10px;">
          <span class="feedback-date">${formatDate(f.createdAt)}</span>
-         <button type="button" onclick="deleteFeedback('${f.id}')" title="Diesen Feedback-Eintrag löschen" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.95rem;padding:2px 4px;">🗑️</button>
+         <button type="button" onclick="deleteFeedback(${escapeHtml(JSON.stringify(String(f.id)))})" title="Diesen Feedback-Eintrag löschen" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:0.95rem;padding:2px 4px;">🗑️</button>
        </div>
      </div>
      <div class="feedback-message">${escapeHtml(f.message)}</div>
